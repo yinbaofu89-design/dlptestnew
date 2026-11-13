@@ -14,10 +14,9 @@ HTML = r"""
  #msg{margin-top:16px;padding:10px;border-radius:6px;display:none}
  .ok{background:#e6f4ea;color:#137333}.ng{background:#fce8e6;color:#c5221f}.info{background:#e8f0fe;color:#1a56c4}
  pre{white-space:pre-wrap;word-break:break-all;background:#f5f5f5;padding:8px;max-height:300px;overflow:auto}
- iframe{width:100%;height:420px;border:1px solid #ccc;display:none;margin-top:10px}
 </style></head><body>
 <h2>DLP テストページ</h2>
-<form id="f" method="post" enctype="multipart/form-data" target="rf">
+<form id="f" method="post" enctype="multipart/form-data" target="_self">
  <label>送信先URL</label>
  <select id="url">
   <option selected>https://httpbin.org/post</option>
@@ -35,7 +34,6 @@ HTML = r"""
 </form>
 <div id="msg"></div>
 <pre id="body" style="display:none"></pre>
-<iframe name="rf" id="rf"></iframe>
 <script>
 const KEYS=["Access Denied","content_filter_denied","Transaction ID:"];
 const $=id=>document.getElementById(id);
@@ -45,7 +43,7 @@ $("send").onclick=async()=>{
   const fd=new FormData();
   fd.append("text",$("text").value);
   if($("file").files[0]) fd.append("file",$("file").files[0]);
-  $("body").style.display="none";$("rf").style.display="none";
+  $("body").style.display="none";
   show("info","送信中...");
   try{
     const r=await fetch(url,{method:"POST",body:fd});
@@ -54,9 +52,8 @@ $("send").onclick=async()=>{
     show(r.ok?"ok":"ng",(r.ok?"正常に送信しました":"送信失敗")+"（HTTP "+r.status+"）");
     $("body").textContent=t.slice(0,3000);$("body").style.display="block";
   }catch(e){
-    // CORSなどで応答を読めない場合は、フォーム送信で応答をそのまま表示
-    show("info","応答を直接表示します");
-    const f=$("f");f.action=url;$("rf").style.display="block";f.submit();
+    // 応答を読めない場合（例外ページ等）はフォーム送信し、画面全体を応答に置き換える
+    const f=$("f");f.action=url;f.submit();
   }
 };
 </script></body></html>
